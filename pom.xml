@@ -24,6 +24,7 @@
             <pom>
               <includes>
                 <include>pom.xml</include>
+                <include>src/main/resources/archetype-resources/pom.xml</include>
               </includes>
               <sortPom>
                 <expandEmptyElements>false</expandEmptyElements>
