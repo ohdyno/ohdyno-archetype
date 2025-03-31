@@ -1,8 +1,7 @@
 package ${package}.feature.step.definitions;
 
-import io.cucumber.java.en.And;
-import io.cucumber.java.en.Given;
-import $package.feature.states.TestState;
+import io.cucumber.java.en.When;
+import ${package}.feature.states.TestState;
 
 public class Whens {
     private final TestState state;
@@ -12,7 +11,7 @@ public class Whens {
     }
 
     @When("a when")
-    public void theSystemIsOperational() {
+    public void aWhen() {
 
     }
 }
