@@ -25,17 +25,9 @@ under the License.
 
   <fileSets>
     <fileSet filtered="true" packaged="true">
-      <directory>src/main/java</directory>
-    </fileSet>
-    <fileSet filtered="true" packaged="true">
-      <directory>src/test/java</directory>
+      <directory>src/</directory>
       <includes>
         <include>**/*.java</include>
-      </includes>
-    </fileSet>
-    <fileSet filtered="false" encoding="UTF-8">
-      <directory>src/test/resources</directory>
-      <includes>
         <include>**/*.feature</include>
       </includes>
     </fileSet>
@@ -43,7 +35,8 @@ under the License.
       <directory/>
       <includes>
         <include>README.md</include>
-        <include>.gitignore</include>
+        <include>gitignore</include>
+        <include>githooks/</include>
       </includes>
     </fileSet>
   </fileSets>
