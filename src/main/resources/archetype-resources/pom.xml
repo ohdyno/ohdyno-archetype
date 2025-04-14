@@ -3,12 +3,11 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>${groupId}</groupId>
   <artifactId>${artifactId}</artifactId>
-  <version>${version}</version>
+  <version>${revision}</version>
   <properties>
-    <maven.compiler.source>21</maven.compiler.source>
-    <maven.compiler.target>21</maven.compiler.target>
     <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <revision>${version}</revision>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -20,9 +19,28 @@
         <scope>import</scope>
       </dependency>
       <dependency>
+        <groupId>jakarta.annotation</groupId>
+        <artifactId>jakarta.annotation-api</artifactId>
+        <version>3.0.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-bom</artifactId>
+        <version>3.27.2</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
         <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
         <version>5.13.0-M2</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-bom</artifactId>
+        <version>2.0.17</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -59,47 +77,68 @@
       <artifactId>junit-platform-suite</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <pluginManagement>
       <plugins>
         <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-enforcer-plugin</artifactId>
-          <version>3.5.0</version>
-          <executions>
-            <execution>
-              <goals>
-                <goal>enforce</goal>
-              </goals>
-              <configuration>
-                <rules>
-                  <requireMavenVersion>
-                    <version>3.9.9</version>
-                  </requireMavenVersion>
-                </rules>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
           <groupId>com.diffplug.spotless</groupId>
           <artifactId>spotless-maven-plugin</artifactId>
-          <version>2.43.0</version>
+          <version>2.44.3</version>
           <configuration>
             <java>
               <includes>
-                <include>/**/*.java</include>
+                <include>**/*.java</include>
               </includes>
               <toggleOffOn/>
               <cleanthat>
                 <version>2.22</version>
+                <mutators>
+                  <!-- Mutators at: https://github.com/solven-eu/cleanthat/blob/v2.22.RELEASE/MUTATORS.generated.MD -->
+                  <mutator>SafeAndConsensual</mutator>
+                  <mutator>SafeButControversial</mutator>
+                  <mutator>SafeButNotConsensual</mutator>
+                </mutators>
+                <includeDraft>true</includeDraft>
               </cleanthat>
-              <googleJavaFormat>
-                <version>1.25.2</version>
-              </googleJavaFormat>
+              <eclipse>
+                <version>4.35</version>
+                <sortMembersEnabled>true</sortMembersEnabled>
+                <!-- Optional: Specify the sort order of the member categories.
+                (default: T, SF, SI, SM, F, I, C, M)
+                     SF, SI, SM, F, I, C, M, T =
+                     Static Fields, Static Initializers, Static Methods,
+                     Fields, Initializers, Constructors, Methods, (Nested) Types -->
+                <sortMembersOrder>SF,SI,SM,F,I,C,M,T</sortMembersOrder>
+                <!-- Optional: Enable reordering members of the same category by the visibility within the category.
+                (default: false) -->
+                <sortMembersVisibilityOrderEnabled>true</sortMembersVisibilityOrderEnabled>
+                <!-- Optional:
+                Specify the ordering of members from the same category by the visibility within the category.
+                (default: B, V, R, D)
+                     B, R, D, V = Public, Protected, Package, Private -->
+                <sortMembersVisibilityOrder>B,R,D,V</sortMembersVisibilityOrder>
+              </eclipse>
+              <palantirJavaFormat>
+                <version>2.61.0</version>
+                <style>PALANTIR</style>
+                <formatJavadoc>true</formatJavadoc>
+              </palantirJavaFormat>
               <importOrder/>
-              <removeUnusedImports/>
               <formatAnnotations/>
             </java>
             <pom>
@@ -131,7 +170,9 @@
               <includes>
                 <include>scripts/**/*.sh</include>
               </includes>
-              <shfmt/>
+              <shfmt>
+                <version>3.11.0</version>
+              </shfmt>
             </shell>
             <gherkin>
               <includes>
@@ -144,6 +185,14 @@
           </configuration>
           <executions>
             <execution>
+              <id>spotless.apply</id>
+              <goals>
+                <goal>apply</goal>
+              </goals>
+              <phase>compile</phase>
+            </execution>
+            <execution>
+              <id>spotless.check</id>
               <goals>
                 <goal>check</goal>
               </goals>
@@ -162,8 +211,8 @@
           </configuration>
           <executions>
             <execution>
+              <id>githooks.configure</id>
               <goals>
-                <goal>initialize</goal>
                 <goal>configure</goal>
               </goals>
             </execution>
@@ -207,8 +256,53 @@
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
+          <artifactId>flatten-maven-plugin</artifactId>
+          <version>1.7.0</version>
+          <configuration>
+            <updatePomFile>true</updatePomFile>
+            <flattenMode>oss</flattenMode>
+          </configuration>
+          <executions>
+            <execution>
+              <id>flatten</id>
+              <goals>
+                <goal>flatten</goal>
+              </goals>
+              <phase>process-resources</phase>
+            </execution>
+            <execution>
+              <id>flatten.clean</id>
+              <goals>
+                <goal>clean</goal>
+              </goals>
+              <phase>clean</phase>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
           <artifactId>versions-maven-plugin</artifactId>
           <version>2.18.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>3.5.0</version>
+          <executions>
+            <execution>
+              <id>maven.enforce</id>
+              <goals>
+                <goal>enforce</goal>
+              </goals>
+              <configuration>
+                <rules>
+                  <requireMavenVersion>
+                    <version>3.9.9</version>
+                  </requireMavenVersion>
+                </rules>
+              </configuration>
+            </execution>
+          </executions>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -216,13 +310,14 @@
       <plugin>
         <groupId>com.diffplug.spotless</groupId>
         <artifactId>spotless-maven-plugin</artifactId>
-        <configuration>
-          <skip>true</skip><!-- Delete this configuration to enable spotless configuration! -->
-        </configuration>
       </plugin>
       <plugin>
         <groupId>com.rudikershaw.gitbuildhook</groupId>
         <artifactId>git-build-hook-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
